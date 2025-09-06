@@ -1,0 +1,8 @@
+{
+    "name": "labs-1",
+    "description": "Deliver Data from a Library API",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "license": "ISC"
+}
