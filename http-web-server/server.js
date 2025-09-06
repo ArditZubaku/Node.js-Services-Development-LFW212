@@ -1,7 +1,7 @@
 "use strict";
+
 const { URL } = require("node:url");
 const http = require("node:http");
-const { log } = require("node:util");
 const PORT = process.env.PORT || 3000;
 const { STATUS_CODES } = http;
 
@@ -33,6 +33,7 @@ const root = `<html>
 const server = http.createServer((req, res) => {
   res.setHeader("Content-Type", "text/html");
   if (req.method !== "GET") {
+    // Set the HTTP status code to 405 (Method Not Allowed) and send its description as the response body.
     res.statusCode = 405;
     res.end(STATUS_CODES[res.statusCode] + "\r\n");
     return;
