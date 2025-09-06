@@ -1,0 +1,8 @@
+{
+  "name": "labs-2",
+  "description": "Implement a Status Code Response",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "ISC"
+}
