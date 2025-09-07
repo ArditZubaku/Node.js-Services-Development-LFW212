@@ -1,30 +1,43 @@
-"use strict";
+var createError = require("http-errors");
+var express = require("express");
+var path = require("path");
+var cookieParser = require("cookie-parser");
+var logger = require("morgan");
 
-const express = require("express");
-const createError = require("http-errors");
-const indexRoutes = require("./routes");
-const helloRoutes = require("./routes/hello");
+var indexRouter = require("./routes/index");
+var helloRouter = require("./routes/hello");
 
-const app = express();
+var app = express();
 
-app.use("/", indexRoutes);
-app.use("/hello", helloRoutes);
+// view engine setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "hbs");
 
-app.use((req, _res, next) => {
-  if (req.method !== "GET") {
-    next(createError(405));
-    return;
-  }
+app.use(logger("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+if (process.env.NODE_ENV !== "production") {
+  app.use(express.static(path.join(__dirname, "public")));
+}
+
+app.use("/", indexRouter);
+app.use("/hello", helloRouter);
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// This registered middleware specifies four parameters instead of the usual three.
-// This makes Express recognize the middleware as the final error handling middleware
-// and passes the error object that we pass to next in the prior middleware
-// as the first argument of this special error-handling middleware function
-app.use((err, req, res, next) => {
+// error handler
+app.use(function (err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get("env") === "development" ? err : {};
+
+  // render the error page
   res.status(err.status || 500);
-  res.send(err.message);
+  res.render("error");
 });
 
 module.exports = app;
