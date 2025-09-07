@@ -2,6 +2,7 @@
 
 module.exports = async (app, opts) => {
   app.get("/", async (req, res) => {
-    return res.sendFile("hello.html");
+    const { greeting = "Hello " } = req.query;
+    return res.view(`hello.hbs`, { greeting });
   });
 };

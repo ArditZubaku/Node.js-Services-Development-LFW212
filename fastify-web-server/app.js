@@ -4,8 +4,10 @@ const path = require("node:path");
 const AutoLoad = require("@fastify/autoload");
 
 const dev = process.env.NODE_ENV !== "production";
-
 const fastifyStatic = dev && require("@fastify/static");
+
+const pointOfView = require("@fastify/view");
+const handlebars = require("handlebars");
 
 const options = {};
 
@@ -15,6 +17,12 @@ module.exports = async function (app, opts) {
       root: path.join(__dirname, "public"),
     });
   }
+
+  app.register(pointOfView, {
+    engine: { handlebars },
+    root: path.join(__dirname, "views"),
+    layout: "layout.hbs",
+  });
 
   app.register(AutoLoad, {
     dir: path.join(__dirname, "plugins"),
