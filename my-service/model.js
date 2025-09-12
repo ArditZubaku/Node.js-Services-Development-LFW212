@@ -11,13 +11,35 @@ function bicycleModel() {
   };
 
   return {
+    create,
     read,
+    update,
+    del,
+    uid,
   };
 
-  // This function, named 'read', is used to retrieve a bicycle entry from the in-memory 'db' object by its 'id'.
-  // It takes two arguments: 'id' (the identifier of the bicycle) and 'cb' (a callback function).
-  // If the 'db' does not contain an entry for the given 'id', it calls the callback asynchronously with an error ("not found").
-  // If the entry exists, it calls the callback asynchronously with 'null' as the error and the bicycle data as the result.
+  function uid() {
+    return (
+      Object.keys(db)
+        .sort((a, b) => a - b)
+        .map(Number)
+        .filter((n) => !isNaN(n))
+        .pop() +
+      1 +
+      ""
+    );
+  }
+
+  function create(id, data, cb) {
+    if (db.hasOwnProperty(id)) {
+      const err = Error("resource exists");
+      setImmediate(() => cb(err));
+      return;
+    }
+    db[id] = data;
+    setImmediate(() => cb(null, id));
+  }
+
   function read(id, cb) {
     if (!db.hasOwnProperty(id)) {
       const err = Error("not found");
@@ -25,5 +47,25 @@ function bicycleModel() {
       return;
     }
     setImmediate(() => cb(null, db[id]));
+  }
+
+  function update(id, data, cb) {
+    if (!db.hasOwnProperty(id)) {
+      const err = Error("not found");
+      setImmediate(() => cb(err));
+      return;
+    }
+    db[id] = data;
+    setImmediate(() => cb());
+  }
+
+  function del(id, cb) {
+    if (!db.hasOwnProperty(id)) {
+      const err = Error("not found");
+      setImmediate(() => cb(err));
+      return;
+    }
+    delete db[id];
+    setImmediate(() => cb());
   }
 }

@@ -1,56 +1,65 @@
-// "use strict";
-
-// const { bicycle } = require("../../model");
-
-// module.exports = async (app, opts) => {
-//   app.get("/:id", (req, res) => {
-//     const { id } = req.params;
-//     bicycle.read(id, (err, result) => {
-//       if (err) {
-//         if (err.message === "not found") {
-//           res.notFound();
-//         } else {
-//           // If the error is something else, this is assumed to be a server error,
-//           // and the err object is passed to reply.send.
-//           //  This causes Fastify to generate a 500 response and output the error message.
-//           res.send(err);
-//         }
-//       } else {
-//         res.send(result);
-//       }
-//     });
-//   });
-// };
-
-// Callback API inside an async rout handler
-// "use strict";
-
-// const { bicycle } = require("../../model");
-
-// module.exports = async (fastify, opts) => {
-//   fastify.get("/:id", async (request, reply) => {
-//     const { id } = request.params;
-//     bicycle.read(id, (err, result) => {
-//       if (err) {
-//         if (err.message === "not found") reply.notFound();
-//         else reply.send(err);
-//       } else reply.send(result);
-//     });
-//     await reply;
-//   });
-// };
-
-// Using promisify
 "use strict";
-const { promisify } = require("node:util");
+const { promisify } = require("util");
 const { bicycle } = require("../../model");
+const { uid } = bicycle;
 const read = promisify(bicycle.read);
+const create = promisify(bicycle.create);
+const update = promisify(bicycle.update);
+const del = promisify(bicycle.del);
 
-module.exports = async (fastify, opts) => {
-  const { notFound } = fastify.httpErrors;
+module.exports = async (app, opts) => {
+  const { notFound } = app.httpErrors;
 
-  fastify.get("/:id", async (request, reply) => {
-    const { id } = request.params;
+  app.post("/", async (req, res) => {
+    const { data } = req.body;
+    const id = uid();
+    await create(id, data);
+    res.code(201);
+    return { id };
+  });
+
+  app.post("/:id/update", async (req, res) => {
+    const { id } = req.params;
+    const { data } = req.body;
+    try {
+      await update(id, data);
+      res.code(204);
+    } catch (err) {
+      if (err.message === "not found") throw notFound();
+      throw err;
+    }
+  });
+
+  app.put("/:id", async (req, res) => {
+    const { id } = req.params;
+    const { data } = req.body;
+    try {
+      await create(id, data);
+      res.code(201);
+      return {};
+    } catch (err) {
+      if (err.message === "resource exists") {
+        await update(id, data);
+        res.code(204);
+      } else {
+        throw err;
+      }
+    }
+  });
+
+  app.delete("/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+      await del(id);
+      res.code(204);
+    } catch (err) {
+      if (err.message === "not found") throw notFound();
+      throw err;
+    }
+  });
+
+  app.get("/:id", async (req, res) => {
+    const { id } = req.params;
     try {
       return await read(id);
     } catch (err) {
