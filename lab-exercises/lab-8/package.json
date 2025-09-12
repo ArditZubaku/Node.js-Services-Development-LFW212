@@ -1,0 +1,9 @@
+{
+  "name": "labs-1",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node consumer-service.js"
+  },
+  "keywords": [],
+  "license": "UNLICENSED"
+}
