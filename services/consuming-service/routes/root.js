@@ -7,20 +7,34 @@ const brandSrv = `http://localhost:${BRAND_SERVICE_PORT}`;
 module.exports = async function (fastify, opts) {
   fastify.get("/:id", async function (request, reply) {
     const { id } = request.params;
+
     const noop = Function.prototype;
     const signal = AbortSignal.timeout(3000);
+
     const bicycleReq = await fetch(`${bicycleSrv}/${id}`, { signal });
     const brandReq = await fetch(`${brandSrv}/${id}`, { signal });
+
     const bicycleJsonPromise = bicycleReq.json();
     const brandJsonPromise = brandReq.json();
+
+    if (bicycleReq.status === 404 || brandReq.status === 404) {
+      throw fastify.httpErrors.notFound();
+    }
+    if (bicycleReq.status === 400 || brandReq.status === 400) {
+      throw fastify.httpErrors.badRequest();
+    }
+
     bicycleJsonPromise.catch(noop);
     brandJsonPromise.catch(noop);
+
     const results = await Promise.allSettled([
       bicycleJsonPromise,
       brandJsonPromise,
     ]);
+
     for (const { reason } of results) if (reason) throw reason;
     const [bicycle, brand] = results.map(({ value }) => value);
+
     return {
       // If at all possible, avoid sending back the same data that a user sent to the service.
       // See OWASP, Testing for Reflected Cross Site Scripting for more information on reflected attacks.
