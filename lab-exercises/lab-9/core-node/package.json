@@ -1,0 +1,12 @@
+{
+  "name": "core-node",
+  "version": "1.0.0",
+  "description": "Implement an HTTP Route-Based Proxy",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
